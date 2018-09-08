@@ -3,14 +3,14 @@ import axios from "axios";
 //  创建使用的 插件 对象
 const MyHttp = {};
 // vue的创建必须有有一个公共的install 方法
-// 第二种写法注册公共的使用箭头函数
+// 第二种写法注册公共的使用箭头函数 这样写不ok
+
 MyHttp.install = Vue => {
-  axios.defaults.baseURL = "http://localhost:8888/api/private/v1/";
+  axios.defaults.baseURL = "http://localhost:9000/api/private/v1/";
   Vue.prototype.$http = axios;
 };
-
 // MyHttp.install = function(Vue) {
-//   axios.defaults.baseURL = "http://localhost:8888/api/private/v1/";
+//   axios.defaults.baseURL = "http://localhost:9000/api/private/v1/";
 //   Vue.prototype.$http = axios;
 // };
 
