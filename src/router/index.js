@@ -14,6 +14,6 @@ export default new Router({
   // component  在当前路由下渲染那个
   routes: [
     { name: "login", path: "/login", component: Login },
-    { name: "home", path: "/home", component: Home }
+    { name: "home", path: "/", component: Home }
   ]
 });
