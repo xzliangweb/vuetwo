@@ -3,7 +3,7 @@
         <el-header>
         <el-row>
             <el-col :span="23"><div style="font-size:20px; color:#fff;">电商后台管理系统</div></el-col>
-            <el-col :span="1"><a class="logout" href="#">退出</a></el-col>
+            <el-col :span="1"><a @click.prevent="handleLogout" class="logout" href="#">退出</a></el-col>
         </el-row>
     </el-header>
         <el-container>
@@ -80,6 +80,15 @@ export default {
     const token = sessionStorage.getItem("token");
     if (!token) {
       this.$message.warning("请先登录");
+      this.$router.push("/login");
+    }
+  },
+  //   点击按钮执行事件所以在methods方法中
+  methods: {
+    //   退出
+    handleLogout() {
+      sessionStorage.clear();
+      this.$message.success("退出成功");
       this.$router.push("/login");
     }
   }
