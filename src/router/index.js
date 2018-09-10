@@ -5,6 +5,7 @@ import Router from "vue-router";
 //  登录的路由就配置好了
 import Login from "@/views/Login.vue";
 import Home from "@/views/Home";
+import Users from "@/views/users/List";
 
 Vue.use(Router);
 
@@ -14,6 +15,17 @@ export default new Router({
   // component  在当前路由下渲染那个
   routes: [
     { name: "login", path: "/login", component: Login },
-    { name: "home", path: "/", component: Home }
+    {
+      name: "home",
+      path: "/",
+      component: Home,
+      children: [
+        {
+          name: "users",
+          path: "/users",
+          component: Users
+        }
+      ]
+    }
   ]
 });
