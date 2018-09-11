@@ -33,32 +33,51 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      this.$http
-        .post("login", this.formData)
-        .then(response => {
-          // 打印响应看里面是否有响应数据
-          console.log(response);
-          // 要是不使用解构的方式写法的时候
-          //   const status = response.data.meta.status;
-          //   const msg = response.data.meta.msg
-          const { meta: { msg, status } } = response.data;
-          if (status === 200) {
-            //   成功 消息提示
-            this.$message.success(msg);
-            // 记录token
-            // sessionStorage;记录在服务器内存中
-            // localStorage; 记录在文件中
-            sessionStorage.setItem("token", response.data.data.token);
-            this.$router.push("/"); //点击进行跳转的路由
-          } else {
-            //   失败消息提示
-            this.$message.error(msg);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-        });
+    // 代码重构 es7 的 async异步   await等候，在函数的前面加一个async一个标识
+    // await 后面返回的是一个post 方法返回的 promite
+
+    async handleLogin() {
+      const response = await this.$http.post("login", this.formData);
+
+      const { meta: { msg, status } } = response.data;
+      if (status === 200) {
+        //   成功 消息提示
+        this.$message.success(msg);
+        // 记录token
+        // sessionStorage;记录在服务器内存中
+        // localStorage; 记录在文件中
+        sessionStorage.setItem("token", response.data.data.token);
+        this.$router.push("/"); //点击进行跳转的路由
+      } else {
+        //   失败消息提示
+        this.$message.error(msg);
+      }
+
+      //   this.$http
+      //     .post("login", this.formData)
+      //     .then(response => {
+      //       // 打印响应看里面是否有响应数据
+      //       console.log(response);
+      //       // 要是不使用解构的方式写法的时候
+      //       //   const status = response.data.meta.status;
+      //       //   const msg = response.data.meta.msg
+      //       const { meta: { msg, status } } = response.data;
+      //       if (status === 200) {
+      //         //   成功 消息提示
+      //         this.$message.success(msg);
+      //         // 记录token
+      //         // sessionStorage;记录在服务器内存中
+      //         // localStorage; 记录在文件中
+      //         sessionStorage.setItem("token", response.data.data.token);
+      //         this.$router.push("/"); //点击进行跳转的路由
+      //       } else {
+      //         //   失败消息提示
+      //         this.$message.error(msg);
+      //       }
+      //     })
+      //     .catch(err => {
+      //       console.log(err);
+      //     });
     }
   }
 };
