@@ -49,9 +49,30 @@
                  <el-table-column
                 prop="mg_state"
                 label="用户状态">
+                <template slot-scope="scope">
+                    <!-- 让开关绑定当前的用户scope 是template模板的里面内部数据 mg-state
+                        scope.row.是当前用户的数据.mg-state是绑定的用户数据
+                     -->
+                    <el-switch
+                        v-model="scope.row.mg_state"
+                        active-color="#13ce66"
+                        inactive-color="#ff4949">
+                   </el-switch>
+                </template>
                 </el-table-column>
                  <el-table-column
                 label="操作">
+                <template slot-scope="scope">
+                    <!-- {{scope.row}}  当前一行所绑定的数据对象
+                        scope.$index  可以获取到当前行的索引
+                     给el-table-column  添加按钮需要使用模板列 scope 需要使用添加删除数据从scope里面来
+                    -->
+                    <el-row>
+                        <el-button size="mini" type="primary" icon="el-icon-edit" circle></el-button>
+                        <el-button size="mini" type="success" icon="el-icon-check" circle></el-button>
+                        <el-button size="mini" type="danger" icon="el-icon-delete" circle></el-button>
+                    </el-row>
+                </template>
                 </el-table-column>
             </el-table>
     </el-card>
@@ -60,7 +81,8 @@
 export default {
   data() {
     return {
-      tableData: []
+      tableData: [],
+      value2: true
     };
   },
   //   mounted 这里要是使用mounted 的时候 页面加上上来会显示空白所以会晚
