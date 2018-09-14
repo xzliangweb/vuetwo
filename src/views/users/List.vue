@@ -21,6 +21,7 @@
         <!--  表格  -->
             <el-table
                 border
+                v-loading="loading"
                 :data="tableData"
                 :stripe="true"
                 style="width: 100%">
@@ -45,6 +46,10 @@
                 <el-table-column
                 prop="create_time"
                 label="时间">
+                <!-- 设置时间样式 -->
+                <template slot-scope="scope">
+                    {{scope.row.create_time | fmtDate('YYYY-MM-DD')}}
+                </template>
                 </el-table-column>
                  <el-table-column
                 prop="mg_state"
@@ -82,7 +87,8 @@ export default {
   data() {
     return {
       tableData: [],
-      value2: true
+      value2: true,
+      loading: true
     };
   },
   //   mounted 这里要是使用mounted 的时候 页面加上上来会显示空白所以会晚
@@ -91,15 +97,19 @@ export default {
   },
   methods: {
     //   因为除了登录之外所有的都要设置token
-    loadData() {
+    async loadData() {
       // 设置token
       const token = sessionStorage.getItem("token");
       //   所有的地址都需要请求头授权
       this.$http.defaults.headers.common["Authorization"] = token;
 
+      const response = await this.$http.get("users?pagenum=1&pagesize=10");
+
       this.$http
         .get("users?pagenum=1&pagesize=10")
         .then(response => {
+          // 设置正在加载完成之后页面loading 结束
+          this.loading = false;
           // 请求成功了拿到服务器返回的数据
           const { meta: { msg, status } } = response.data;
           //   判断获取的数据是否成功

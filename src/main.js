@@ -9,6 +9,12 @@ import "element-ui/lib/theme-chalk/index.css";
 import "@/assets/css/index.css";
 // 导入axios
 import MyHttp from "@/plugins/MyHttp";
+// 导入时间过滤器
+import moment from "moment";
+// 过滤器格式化日期字符串
+Vue.filter("fmtDate", (value, fmtStr) => {
+  return moment(value).format(fmtStr);
+});
 
 // 注册 MyHttp 封装的 axios
 Vue.use(MyHttp);
