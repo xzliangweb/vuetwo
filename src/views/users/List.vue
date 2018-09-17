@@ -11,11 +11,13 @@
         <el-row class="row">
             <el-col :span="24">
                 <el-input
+                  clearable
+                  v-model="searchValue"
                   style="width:300px"
                   placeholder="请输入内容">
-                  <el-button slot="append" icon="el-icon-search"></el-button>
+                  <el-button @click="handleSearch" slot="append" icon="el-icon-search"></el-button>
                 </el-input>
-                 <el-button type="success" plain>成功按钮</el-button>
+                 <el-button type="success" plain>添加用户</el-button>
             </el-col>
         </el-row>
         <!--  表格  -->
@@ -59,6 +61,7 @@
                     scope.row.是当前用户的数据.mg-state是绑定的用户数据
                     -->
                 <el-switch
+                    @change="handleChange(scope.row)"
                     v-model="scope.row.mg_state"
                     active-color="#13ce66"
                     inactive-color="#ff4949">
@@ -75,7 +78,7 @@
                 <el-row>
                     <el-button size="mini" type="primary" icon="el-icon-edit" circle></el-button>
                     <el-button size="mini" type="success" icon="el-icon-check" circle></el-button>
-                    <el-button size="mini" type="danger" icon="el-icon-delete" circle></el-button>
+                    <el-button @click="handleDelete(scope.row.id)" size="mini" type="danger" icon="el-icon-delete" circle></el-button>
                 </el-row>
             </template>
             </el-table-column>
@@ -95,12 +98,11 @@
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
             :current-page="pagenum"
-            :page-sizes="[10, 20, 30, 40]"
+            :page-sizes="[2, 3, 4, 5]"
             :page-size="pagesize"
             layout="total, sizes, prev, pager, next, jumper"
             :total="total">
         </el-pagination>
-
     </el-card>
 </template>
 <script>
@@ -116,7 +118,9 @@ export default {
       //   页容量
       pagesize: 10,
       //   总数据量
-      total: 100
+      total: 0,
+      //   绑定搜索文本框
+      searchValue: ""
     };
   },
   //   mounted 这里要是使用mounted 的时候 页面加上上来会显示空白所以会晚
@@ -131,7 +135,11 @@ export default {
       //   所有的地址都需要请求头授权
       this.$http.defaults.headers.common["Authorization"] = token;
 
-      const response = await this.$http.get("users?pagenum=1&pagesize=10");
+      const response = await this.$http.get(
+        `user?pagenum=${this.pagenum}&pagesize=${this.pagesize}&query=${
+          this.searchValue
+        }`
+      );
 
       this.$http
         .get("users?pagenum=1&pagesize=10")
@@ -142,6 +150,7 @@ export default {
           const { meta: { msg, status } } = response.data;
           //   判断获取的数据是否成功
           if (status === 200) {
+            this.total = response.data.data.total;
             this.tableData = response.data.data.users;
           } else {
             this.$message.error(msg);
@@ -156,7 +165,56 @@ export default {
       console.log(`每页 ${val} 条`);
     },
     handleCurrentChange(val) {
+      this.loadData();
       console.log(`当前页: ${val}`);
+    },
+    // 搜索功能
+    handleSearch() {
+      this.loadData();
+    },
+    // 删除用户
+    handleDelete(id) {
+      this.$confirm("确定删除该用户嘛", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          // 点击确定时候
+          const response = await this.$http.delete(`users/${id}`);
+          const { meta: { status, msg } } = response.data;
+          if (status === 200) {
+            if (this.pagenum > 1 && this.tableData.length === 1) {
+              this.pagenum--;
+              this.$message.success(msg);
+              //刷新表格
+              this.loadData();
+            }
+          } else {
+            this.$message.error(msg);
+          }
+        })
+        .catch(() => {
+          // 点击删除时候
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+    // 修改用户状态
+    async handleChange(user) {
+      console.log(user);
+      //   拼接模板字符串
+      const response = await this.$http.put(
+        `users/${user.id}/state/${user.mg_state}`
+      );
+      const { meta: { status, msg } } = response.data;
+      if (status === 200) {
+        this.$message.success(msg);
+      } else {
+        this.$message.error(msg);
+      }
     }
   }
 };
