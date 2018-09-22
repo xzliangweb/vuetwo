@@ -27,6 +27,11 @@
             <el-table-column
             prop="level"
             label="层级">
+            <template slot-scope="scope">
+                <span v-if="scope.row.level === '0' ">一级</span>
+                <span v-else-if="scope.row.level === '1' ">二级</span>
+                <span v-else-if="scope.row.level === '2' ">三级</span>
+            </template>
          </el-table-column>
         </el-table>
      </el-card>    
@@ -45,9 +50,13 @@ export default {
     //  加载权限列表数据
     async loadData() {
       const response = await this.$http.get("rights/list");
+
       const { meta: { status, msg } } = response.data;
+
       if (status === 200) {
         this.tableData = response.data.data;
+      } else {
+        this.$message.error(msg);
       }
     }
   }
@@ -56,6 +65,7 @@ export default {
 <style>
 .card {
   height: 100%;
+  overflow: auto;
 }
 </style>
 
