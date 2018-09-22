@@ -76,8 +76,8 @@
                     给el-table-column  添加按钮需要使用模板列 scope 需要使用添加删除数据从scope里面来
                 -->
                 <el-row>
-                    <el-button size="mini" type="primary" icon="el-icon-edit" circle></el-button>
-                    <el-button size="mini" type="success" icon="el-icon-check" circle></el-button>
+                    <el-button size="mini" type="primary" icon="el-icon-edit"  @click="handleOpenEditDialog(scope.row)" circle></el-button>
+                    <el-button size="mini" type="success" icon="el-icon-check" @click="handleOpenRoleDialog(scope.row)" circle></el-button>
                     <el-button @click="handleDelete(scope.row.id)" size="mini" type="danger" icon="el-icon-delete" circle></el-button>
                 </el-row>
             </template>
@@ -131,6 +131,59 @@
                 <el-button type="primary" @click="handadd">确 定</el-button>
             </div>
         </el-dialog>
+        <!-- 修改用户对话框 -->
+        <el-dialog
+            title="修改用户"
+            :visible.sync="editUserDialogFormVisible">
+            <el-form
+                label-width="80px"
+                :model="formData">
+                <el-form-item label="用户名称" prop="username">
+                    <el-input disabled v-model="formData.username" autocomplete="off"></el-input>
+                </el-form-item>
+                  <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="formData.email" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="手机号" prop="mobile">
+                    <el-input v-model="formData.mobile" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="editUserDialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="handleEdit">确 定</el-button>
+            </div>
+        </el-dialog>
+        <!-- 分配角色的对话框 -->
+        <el-dialog
+            title="分配用户" 
+            :visible.sync="setRoleDialogFormVisible">
+            <el-form
+                label-width="100px"
+                :model="formData">
+                <el-form-item label="用户名称">
+                    {{formData.username}}
+                </el-form-item>
+                <el-form-item label="请选择角色">
+                    <!-- 下拉框  currentRoleId默认为f -1 -->
+                    <el-select v-model="currentRoleId" placeholder="请选择">
+                        <el-option
+                        label="请选择"
+                        :value="-1" disabled>
+                        </el-option>
+                        <el-option
+                          v-for="item in options"
+                          :key="item.id"
+                          :label="item.roleName"
+                          :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="setRoleDialogFormVisible = false">取 消</el-button>
+                <el-button @click="handleSetRole" type="primary">确 定</el-button>
+            </div>
+        </el-dialog>
     </el-card>
 </template>
 <script>
@@ -151,6 +204,9 @@ export default {
       searchValue: "",
       //   控制添加用户对话框的显示或隐藏
       addUserDialogFormVisible: false,
+      //  分配用户角色
+      setRoleDialogFormVisible: false,
+      //   修改用户隐藏
       formData: {
         username: "",
         password: "",
@@ -175,7 +231,12 @@ export default {
           }
         ],
         mobile: [{ required: true, message: "请输入电话", trigger: "blur" }]
-      }
+      },
+      editUserDialogFormVisible: false,
+      //  绑定下拉框
+      currentRoleId: -1,
+      // 所有的角色
+      options: []
     };
   },
   //   mounted 这里要是使用mounted 的时候 页面加上上来会显示空白所以会晚
@@ -242,12 +303,12 @@ export default {
             if (this.pagenum > 1 && this.tableData.length === 1) {
               this.pagenum--;
               this.$message.success(msg);
-              //刷新表格
-              this.loadData();
             }
           } else {
             this.$message.error(msg);
           }
+          //刷新表格
+          this.loadData();
         })
         .catch(() => {
           // 点击删除时候
@@ -308,6 +369,64 @@ export default {
       // 点击对话框清空 内容 里面
       for (let key in this.formData) {
         this.formData[key] = "";
+      }
+      this.currentRoleId = -1;
+    },
+    //  编辑用户信息
+    handleOpenEditDialog(user) {
+      // 打开修改用户的对话框
+      this.editUserDialogFormVisible = true;
+      //   设置formData 的值
+      this.formData.username = user.username;
+      this.formData.email = user.email;
+      this.formData.mobile = user.mobile;
+      //   点击编辑按钮的时候记录下用户的id 点击确定的时候使用
+      this.formData.id = user.id;
+    },
+    // 点击确定按钮修改 用户信息
+    async handleEdit() {
+      const response = await this.$http.put(`/users/${this.formData.id}`, {
+        email: this.formData.email,
+        mobile: this.formData.mobile
+      });
+      const { meta: { status, msg } } = response.data;
+      if (status === 200) {
+        // 点击关闭页面
+        this.editUserDialogFormVisible = false;
+        // 刷新页面
+        this.loadData();
+        // 消息提示
+        this.$message.success(msg);
+      } else {
+        this.$message.error(msg);
+      }
+    },
+    // 点击分配角色
+    async handleOpenRoleDialog(user) {
+      this.setRoleDialogFormVisible = true;
+      this.formData.username = user.username;
+      // 发送请求获取所有的用户角色
+      const response = await this.$http.get("roles");
+      this.options = response.data.data;
+
+      // 设置当前用户默认的角色
+      const res = await this.$http.get(`users/${user.id}`);
+      this.currentRoleId = res.data.data.rid;
+      this.formData.id = user.id;
+    },
+    // 设置用户角色
+    async handleSetRole() {
+      const response = await this.$http.put(`user/${this.formData.id}/role`, {
+        rid: this.currentRoleId
+      });
+      const { meta: { msg, status } } = response.data;
+      if (status === 200) {
+        // 成功
+        this.$message.success(msg);
+        this.setRoleDialogFormVisible = false;
+      } else {
+        // 失败
+        this.$message.error(msg);
       }
     }
   }
